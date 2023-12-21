@@ -28,11 +28,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class BookLoaderJob {
     private final JobRepository jobRepository;
 
-    private static final String INSERT_QUERY = """
-            insert into person (first_name, last_name, age, is_active)
-            values (:firstName,:lastName,:age,:active)
-            """;
-
     @Value("classpath:data/input.csv")
     private Resource inputFeed;
 
