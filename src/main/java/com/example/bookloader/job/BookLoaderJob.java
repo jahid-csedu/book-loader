@@ -9,9 +9,6 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
@@ -25,8 +22,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.transaction.PlatformTransactionManager;
-
-import javax.sql.DataSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -51,7 +46,7 @@ public class BookLoaderJob {
 
     @Bean
     public Step bookLoaderStep(ItemReader<Person> reader,
-                               ItemWriter<Person> writer,
+                               ElasticSearchWriter writer,
                                PlatformTransactionManager transactionManager) {
         var name = "Insert data from csv to database step";
         var builder = new StepBuilder(name, jobRepository);
@@ -97,15 +92,5 @@ public class BookLoaderJob {
         tokenizer.setDelimiter(",");
         tokenizer.setNames("firstName", "lastName", "age", "active");
         return tokenizer;
-    }
-
-    @Bean
-    public JdbcBatchItemWriter<Person> jdbcBatchItemWriter(DataSource dataSource) {
-        var provider = new BeanPropertyItemSqlParameterSourceProvider<Person>();
-        var itemWriter = new JdbcBatchItemWriter<Person>();
-        itemWriter.setDataSource(dataSource);
-        itemWriter.setSql(INSERT_QUERY);
-        itemWriter.setItemSqlParameterSourceProvider(provider);
-        return itemWriter;
     }
 }

@@ -1,7 +1,7 @@
 package com.example.bookloader.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -13,9 +13,13 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableBatchProcessing
-@RequiredArgsConstructor
 public class BatchConfig {
+
     private final DataSource dataSource;
+
+    public BatchConfig(@Qualifier("dataSource") DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     @Bean
     public DataSourceTransactionManager transactionManager() {
