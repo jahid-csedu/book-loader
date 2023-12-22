@@ -1,9 +1,9 @@
 package com.example.bookloader.repository;
 
-import com.example.bookloader.model.Person;
+import com.example.bookloader.model.Author;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PersonRepository extends ElasticsearchRepository<Person, Long> {
+public interface AuthorRepository extends ElasticsearchRepository<Author, Long> {
 }

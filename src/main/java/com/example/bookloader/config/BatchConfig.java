@@ -1,6 +1,8 @@
 package com.example.bookloader.config;
 
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.item.file.LineMapper;
+import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,5 +44,10 @@ public class BatchConfig {
         populator.setContinueOnError(false);
         populator.setIgnoreFailedDrops(false);
         return populator;
+    }
+
+    @Bean
+    public LineMapper<String> lineMapper() {
+        return new PassThroughLineMapper();
     }
 }

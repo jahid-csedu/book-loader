@@ -1,7 +1,9 @@
 package com.example.bookloader.job;
 
 import com.example.bookloader.listener.JobCompletionNotificationListener;
-import com.example.bookloader.model.Person;
+import com.example.bookloader.model.Author;
+import com.example.bookloader.step.processor.AuthorProcessor;
+import com.example.bookloader.step.writer.ElasticSearchWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -14,8 +16,10 @@ import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
+import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.file.transform.LineTokenizer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,67 +29,44 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 @RequiredArgsConstructor
-public class BookLoaderJob {
+public class AuthorLoaderJobConfig {
     private final JobRepository jobRepository;
 
-    @Value("classpath:data/input.csv")
-    private Resource inputFeed;
+    @Value("classpath:data/authors.txt")
+    private Resource authorFeed;
 
     @Bean
-    public Job loadBookToElasticSearchFromCsvFileJob(Step loaderStep) {
-        var name = "Book loader job";
+    public Job authorLoaderJob(@Qualifier("authorLoaderStep") Step loaderStep) {
+        var name = "Author loader job";
         var builder = new JobBuilder(name, jobRepository);
 
         return builder.start(loaderStep).listener(new JobCompletionNotificationListener()).build();
     }
 
     @Bean
-    public Step bookLoaderStep(ItemReader<Person> reader,
-                               ElasticSearchWriter writer,
-                               PlatformTransactionManager transactionManager) {
-        var name = "Insert data from csv to database step";
+    public Step authorLoaderStep(@Qualifier("authorReader") ItemReader<String> reader,
+                                 AuthorProcessor processor,
+                                 ElasticSearchWriter writer,
+                                 PlatformTransactionManager transactionManager) {
+        var name = "Insert author data from csv to elasticsearch step";
         var builder = new StepBuilder(name, jobRepository);
 
         return builder
-                .<Person, Person>chunk(5, transactionManager)
+                .<String, Author>chunk(5, transactionManager)
                 .faultTolerant()
                 .retryLimit(3)
                 .retry(PessimisticLockingFailureException.class)
                 .reader(reader)
+                .processor(processor)
                 .writer(writer)
                 .build();
     }
 
     @Bean
-    public FlatFileItemReader<Person> fileItemReader(LineMapper<Person> lineMapper) {
-        var itemReader = new FlatFileItemReader<Person>();
+    public FlatFileItemReader<String> authorReader(LineMapper<String> lineMapper) {
+        var itemReader = new FlatFileItemReader<String>();
         itemReader.setLineMapper(lineMapper);
-        itemReader.setResource(inputFeed);
+        itemReader.setResource(authorFeed);
         return itemReader;
-    }
-
-    @Bean
-    public DefaultLineMapper<Person> lineMapper(LineTokenizer tokenizer,
-                                                FieldSetMapper<Person> mapper) {
-        var lineMapper = new DefaultLineMapper<Person>();
-        lineMapper.setLineTokenizer(tokenizer);
-        lineMapper.setFieldSetMapper(mapper);
-
-        return lineMapper;
-    }
-
-    @Bean
-    public BeanWrapperFieldSetMapper<Person> fieldSetMapper() {
-        var fieldSetMapper = new BeanWrapperFieldSetMapper<Person>();
-        fieldSetMapper.setTargetType(Person.class);
-        return fieldSetMapper;
-    }
-
-    @Bean
-    public DelimitedLineTokenizer lineTokenizer() {
-        var tokenizer = new DelimitedLineTokenizer();
-        tokenizer.setDelimiter(",");
-        tokenizer.setNames("firstName", "lastName", "age", "active");
-        return tokenizer;
     }
 }
