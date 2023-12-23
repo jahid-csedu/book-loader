@@ -18,20 +18,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/loader")
 public class JobRunController {
     private final Job authorLoaderJob;
+    private final Job bookLoaderJob;
     private final JobLauncher jobLauncher;
 
-    public JobRunController(@Qualifier("authorLoaderJob") Job authorLoaderJob, JobLauncher jobLauncher) {
+    public JobRunController(@Qualifier("authorLoaderJob") Job authorLoaderJob, @Qualifier("bookLoaderJob") Job bookLoaderJob, JobLauncher jobLauncher) {
         this.authorLoaderJob = authorLoaderJob;
+        this.bookLoaderJob = bookLoaderJob;
         this.jobLauncher = jobLauncher;
     }
 
     @PostMapping("/authors")
-    public ResponseEntity<String> loadJob() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
+    public ResponseEntity<String> loadAuthors() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         JobParameters params = new JobParametersBuilder()
                 .addString("JobID", String.valueOf(System.currentTimeMillis()))
                 .toJobParameters();
 
         jobLauncher.run(authorLoaderJob, params);
+
+        return ResponseEntity.ok("Job started");
+    }
+
+    @PostMapping("/books")
+    public ResponseEntity<String> loadBooks() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
+        JobParameters params = new JobParametersBuilder()
+                .addString("JobID", String.valueOf(System.currentTimeMillis()))
+                .toJobParameters();
+
+        jobLauncher.run(bookLoaderJob, params);
 
         return ResponseEntity.ok("Job started");
     }

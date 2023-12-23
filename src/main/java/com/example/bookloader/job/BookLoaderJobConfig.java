@@ -1,8 +1,11 @@
 package com.example.bookloader.job;
 
+import com.example.bookloader.entity.Book;
 import com.example.bookloader.listener.JobCompletionNotificationListener;
-import com.example.bookloader.model.Author;
-import com.example.bookloader.step.writer.ElasticSearchWriter;
+import com.example.bookloader.entity.Author;
+import com.example.bookloader.step.processor.BookProcessor;
+import com.example.bookloader.step.writer.AuthorWriter;
+import com.example.bookloader.step.writer.BookWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -38,17 +41,19 @@ public class BookLoaderJobConfig {
 
     @Bean
     public Step bookLoaderStep(@Qualifier("bookReader") ItemReader<String> reader,
-                               ElasticSearchWriter writer,
+                               BookProcessor processor,
+                               BookWriter writer,
                                PlatformTransactionManager transactionManager) {
         var name = "Insert book data from csv to elasticsearch step";
         var builder = new StepBuilder(name, jobRepository);
 
         return builder
-                .<String, Author>chunk(5, transactionManager)
+                .<String, Book>chunk(5, transactionManager)
                 .faultTolerant()
                 .retryLimit(3)
                 .retry(PessimisticLockingFailureException.class)
                 .reader(reader)
+                .processor(processor)
                 .writer(writer)
                 .build();
     }

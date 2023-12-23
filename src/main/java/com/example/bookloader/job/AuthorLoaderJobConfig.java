@@ -1,9 +1,9 @@
 package com.example.bookloader.job;
 
 import com.example.bookloader.listener.JobCompletionNotificationListener;
-import com.example.bookloader.model.Author;
+import com.example.bookloader.entity.Author;
 import com.example.bookloader.step.processor.AuthorProcessor;
-import com.example.bookloader.step.writer.ElasticSearchWriter;
+import com.example.bookloader.step.writer.AuthorWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -13,12 +13,6 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.mapping.FieldSetMapper;
-import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
-import org.springframework.batch.item.file.transform.LineTokenizer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -46,7 +40,7 @@ public class AuthorLoaderJobConfig {
     @Bean
     public Step authorLoaderStep(@Qualifier("authorReader") ItemReader<String> reader,
                                  AuthorProcessor processor,
-                                 ElasticSearchWriter writer,
+                                 AuthorWriter writer,
                                  PlatformTransactionManager transactionManager) {
         var name = "Insert author data from csv to elasticsearch step";
         var builder = new StepBuilder(name, jobRepository);
