@@ -39,7 +39,7 @@ public class AuthorProcessor implements ItemProcessor<String, Author> {
         }
 
         Author author = authorBuilder.build();
-        log.info("Author: {}", author);
+        log.info("Parsed Author: {}", author);
 
         return author;
     }

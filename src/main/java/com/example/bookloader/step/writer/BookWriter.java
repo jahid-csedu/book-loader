@@ -16,8 +16,9 @@ import java.util.List;
 @Slf4j
 public class BookWriter implements ItemWriter<Book> {
     private final BookRepository elasticsearchRepository;
+
     @Override
-    public void write(Chunk<? extends Book> chunk) throws Exception {
+    public void write(Chunk<? extends Book> chunk) {
         List<? extends Book> books = chunk.getItems();
         log.info("saving books: {}", books);
         List<? extends Book> validBooks = books.stream()

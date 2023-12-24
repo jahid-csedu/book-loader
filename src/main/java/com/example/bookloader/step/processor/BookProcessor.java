@@ -38,7 +38,7 @@ public class BookProcessor implements ItemProcessor<String, Book> {
         }
 
         Book book = bookBuilder.build();
-        log.info("Book: {}", book);
+        log.info("Parsed Book: {}", book);
         return book;
     }
 

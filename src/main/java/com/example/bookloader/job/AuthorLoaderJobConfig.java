@@ -46,7 +46,7 @@ public class AuthorLoaderJobConfig {
         var builder = new StepBuilder(name, jobRepository);
 
         return builder
-                .<String, Author>chunk(5, transactionManager)
+                .<String, Author>chunk(50, transactionManager)
                 .faultTolerant()
                 .retryLimit(3)
                 .retry(PessimisticLockingFailureException.class)
